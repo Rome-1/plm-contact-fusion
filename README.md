@@ -1,6 +1,6 @@
 # plm-contact-fusion
 
-**Protein contacts are already in the attention: beating the Categorical Jacobian in one forward pass.**
+**Protein contacts are already in the attention: a single-forward-pass alternative to the Categorical Jacobian.**
 
 Code and result tables for the paper. The method: the long-range contact signal a
 protein language model encodes is concentrated in a small, identifiable cluster of
@@ -64,7 +64,7 @@ reproducer can verify byte-identical checkpoints before any forward pass.
 
 ```bibtex
 @misc{thorstenson2026plmcontactfusion,
-  title  = {Protein contacts are already in the attention: beating the Categorical Jacobian in one forward pass},
+  title  = {Protein contacts are already in the attention: a single-forward-pass alternative to the Categorical Jacobian},
   author = {Thorstenson, Rome},
   year   = {2026},
   note   = {Preprint},
