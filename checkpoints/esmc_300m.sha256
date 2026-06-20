@@ -1,0 +1,4 @@
+# esmc variant '300M' (ESMC-300M, EvolutionaryScale Cambrian, bidirectional masked LM)
+# Source: huggingface.co/biohub/ESMC-300M
+# SHA256 = HF LFS oid of model.safetensors (1,332,036,392 bytes)
+0772d8fe64bb25e14fe6f23b80e3c9a7d215d0da3c6cba5bd356d7c0e0bb22cc  model.safetensors

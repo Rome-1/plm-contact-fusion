@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+*.egg
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Result + contact artifacts — summary tables (paper/appendix_data.json) are
+# committed; bulk per-protein results and score maps are not.
+results/*
+!results/.gitkeep
+contacts/*
+!contacts/.gitkeep
+
+# Built dataset artifacts under data/<split>/. The vendored release inputs at
+# data/<split>/_release/ ARE committed for reproducibility; the downstream
+# built artifacts are regenerable from those inputs and not committed.
+data/zhang_1431/contacts/
+data/zhang_1431/sequences.fasta
+data/zhang_1431/manifest.sha256
+data/zhang_1431/failures.jsonl
+
+# Local-only weight blobs. The SHA256 manifests under checkpoints/ ARE committed.
+checkpoints/*.pt
+checkpoints/*.bin
+checkpoints/*.safetensors
+
+# Logs / coverage
+*.log
+.coverage
+htmlcov/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# LaTeX build artifacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.blg
+paper/*.synctex.gz

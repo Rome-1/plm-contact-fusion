@@ -1,0 +1,11 @@
+# ESM-2-650M (esm2_t33_650M_UR50D) weight integrity manifest — FR-13.
+#
+# Format: sha256sum default — one entry per checkpoint file the loader is
+# allowed to open. Hash mismatch raises sj.model.WeightIntegrityError and
+# halts execution per FR-13. An empty manifest also halts.
+#
+# Source: https://huggingface.co/facebook/esm2_t33_650M_UR50D
+# API:    https://huggingface.co/api/models/facebook/esm2_t33_650M_UR50D/tree/main
+# Hashes pulled from HF Hub LFS oid field; verified 2026-05-04.
+a08adabb949fa67ad3c14b509d04fd60368b35007b0095e3358f81200c4f4db0  model.safetensors
+c874668852c7275a159e2c7ceb6069671d7b1ba2c7b52f59600b34ce0f721008  pytorch_model.bin

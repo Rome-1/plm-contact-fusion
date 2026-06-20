@@ -1,0 +1,249 @@
+\begin{thebibliography}{30}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Adams et~al.(2025)Adams, Bai, Lee, Yu, and
+  AlQuraishi]{adams2025plmsae}
+Etowah Adams, Liam Bai, Minji Lee, Yiyang Yu, and Mohammed AlQuraishi.
+\newblock From mechanistic interpretability to mechanistic biology: Training,
+  evaluating, and interpreting sparse autoencoders on protein language models.
+\newblock In \emph{Proceedings of the 42nd International Conference on Machine
+  Learning (ICML)}, volume 267 of \emph{Proceedings of Machine Learning
+  Research}, pages 460--476, 2025.
+
+\bibitem[Anonymous(2025)]{liveproteinbench2025}
+Anonymous.
+\newblock {LiveProteinBench}: A contamination-free benchmark for assessing
+  models' specialized capabilities in protein science.
+\newblock \emph{arXiv preprint arXiv:2512.22257}, 2025.
+
+\bibitem[Bartoszewicz et~al.(2025)Bartoszewicz, Nguyen, Hermann, Fiedler, and
+  Nowicka]{bartoszewicz2025ppileakage}
+Jakub~M. Bartoszewicz, Hieu~A. Nguyen, Lennard Hermann, Tobias Fiedler, and
+  Magdalena Nowicka.
+\newblock A flaw in using pretrained protein language models in
+  protein--protein interaction inference models.
+\newblock \emph{Nature Machine Intelligence}, 2025.
+\newblock \doi{10.1038/s42256-025-01176-7}.
+
+\bibitem[Bepler and Berger(2019)]{bepler2019contact}
+Tristan Bepler and Bonnie Berger.
+\newblock Learning protein sequence embeddings using information from
+  structure.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2019.
+
+\bibitem[Bhattacharya et~al.(2021)Bhattacharya, Thomas, Rao, Dauparas, Koo,
+  Baker, Song, and Ovchinnikov]{bhattacharya2021attention}
+Nicholas Bhattacharya, Neil Thomas, Roshan Rao, Justas Dauparas, Peter~K. Koo,
+  David Baker, Yun~S. Song, and Sergey Ovchinnikov.
+\newblock Single layers of attention suffice to predict protein contacts.
+\newblock In \emph{ICLR 2021 Workshop on Energy Based Models}, 2021.
+\newblock Preprint: bioRxiv 2020.12.21.423882.
+
+\bibitem[{Biohub}(2026)]{biohub2026esm}
+{Biohub}.
+\newblock {ESM}: A world model of protein biology.
+\newblock \url{https://biohub.ai/esm/protein}, 2026.
+\newblock Open-source release bundling ESM Cambrian, ESMFold2, and the ESM
+  Atlas.
+
+\bibitem[Clark et~al.(2019)Clark, Khandelwal, Levy, and
+  Manning]{clark2019bertlookat}
+Kevin Clark, Urvashi Khandelwal, Omer Levy, and Christopher~D. Manning.
+\newblock What does {BERT} look at? an analysis of {BERT}'s attention.
+\newblock In \emph{Proceedings of the 2019 ACL Workshop BlackboxNLP: Analyzing
+  and Interpreting Neural Networks for NLP}, 2019.
+
+\bibitem[Cormack et~al.(2009)Cormack, Clarke, and B{\"u}ttcher]{cormack2009rrf}
+Gordon~V. Cormack, Charles L.~A. Clarke, and Stefan B{\"u}ttcher.
+\newblock Reciprocal rank fusion outperforms {Condorcet} and individual rank
+  learning methods.
+\newblock In \emph{Proceedings of the 32nd International ACM SIGIR Conference
+  on Research and Development in Information Retrieval (SIGIR)}, pages
+  758--759, 2009.
+
+\bibitem[Dallago et~al.(2021)Dallago, Mou, Johnston, Wittmann, Bhattacharya,
+  Goldman, Madani, and Yang]{dallago2021flip}
+Christian Dallago, Jody Mou, Kadina~E. Johnston, Bruce~J. Wittmann, Nicholas
+  Bhattacharya, Samuel Goldman, Ali Madani, and Kevin~K. Yang.
+\newblock {FLIP}: Benchmark tasks in fitness landscape inference for proteins.
+\newblock In \emph{NeurIPS Datasets and Benchmarks Track}, 2021.
+
+\bibitem[Detlefsen et~al.(2022)Detlefsen, Hauberg, and
+  Boomsma]{detlefsen2022plmrepr}
+Nicki~Skafte Detlefsen, S{\o}ren Hauberg, and Wouter Boomsma.
+\newblock Learning meaningful representations of protein sequences.
+\newblock \emph{Nature Communications}, 13:\penalty0 1914, 2022.
+\newblock \doi{10.1038/s41467-022-29443-w}.
+
+\bibitem[Dunn et~al.(2008)Dunn, Wahl, and Gloor]{dunn2008apc}
+Stanley~D. Dunn, Lindi~M. Wahl, and Gregory~B. Gloor.
+\newblock Mutual information without the influence of phylogeny or entropy
+  dramatically improves residue contact prediction.
+\newblock \emph{Bioinformatics}, 24\penalty0 (3):\penalty0 333--340, 2008.
+
+\bibitem[Elnaggar et~al.(2021)Elnaggar, Heinzinger, Dallago, Rehawi, Wang,
+  Jones, Gibbs, Feher, Angerer, Steinegger, Bhowmik, and
+  Rost]{elnaggar2021prottrans}
+Ahmed Elnaggar, Michael Heinzinger, Christian Dallago, Ghalia Rehawi, Yu~Wang,
+  Llion Jones, Tom Gibbs, Tamas Feher, Christoph Angerer, Martin Steinegger,
+  Debsindhu Bhowmik, and Burkhard Rost.
+\newblock {ProtTrans}: Toward understanding the language of life through
+  self-supervised learning.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, 2021.
+\newblock \doi{10.1109/TPAMI.2021.3095381}.
+
+\bibitem[{ESM Team}(2024)]{esmteam2024esmc}
+{ESM Team}.
+\newblock {ESM} {Cambrian}: Revealing the mysteries of proteins with
+  unsupervised learning.
+\newblock \url{https://evolutionaryscale.ai/blog/esm-cambrian}, 2024.
+\newblock ESM C; bidirectional masked-LM successor to ESM-2.
+
+\bibitem[Fournier et~al.(2024)Fournier, Vernon, van~der Sloot, Schulz, Chandar,
+  and Langmead]{fournier2024amplify}
+Quentin Fournier, Robert~M. Vernon, Almer van~der Sloot, Benjamin Schulz,
+  Sarath Chandar, and Christopher~J. Langmead.
+\newblock Protein language models: Is scaling necessary?
+\newblock \emph{bioRxiv}, 2024.
+\newblock \doi{10.1101/2024.09.23.614603}.
+\newblock AMPLIFY model release.
+
+\bibitem[Hayes et~al.(2025)Hayes, Rao, Akin, Sofroniew, Oktay, Lin, Verkuil,
+  Tran, Deaton, Wiggert, et~al.]{hayes2025esm3}
+Thomas Hayes, Roshan Rao, Halil Akin, Nicholas~J. Sofroniew, Deniz Oktay,
+  Zeming Lin, Robert Verkuil, Vincent~Q. Tran, Jonathan Deaton, Marius Wiggert,
+  et~al.
+\newblock Simulating 500 million years of evolution with a language model.
+\newblock \emph{Science}, 387:\penalty0 850--858, 2025.
+\newblock ESM-3 / EvolutionaryScale.
+
+\bibitem[Hermann et~al.(2024)Hermann, Fiedler, Nguyen, Nowicka, and
+  Bartoszewicz]{hermann2024leakage}
+Lennard Hermann, Tobias Fiedler, Hieu~A. Nguyen, Magdalena Nowicka, and
+  Jakub~M. Bartoszewicz.
+\newblock Beware of data leakage from protein {LLM} pretraining.
+\newblock In \emph{Proceedings of the 19th Machine Learning in Computational
+  Biology meeting (MLCB)}, volume 261 of \emph{Proceedings of Machine Learning
+  Research}, pages 106--116, 2024.
+
+\bibitem[Jumper et~al.(2021)Jumper, Evans, Pritzel, Green, Figurnov,
+  Ronneberger, Tunyasuvunakool, Bates, {\v Z}{\'i}dek, Potapenko,
+  et~al.]{jumper2021af2}
+John Jumper, Richard Evans, Alexander Pritzel, Tim Green, Michael Figurnov,
+  Olaf Ronneberger, Kathryn Tunyasuvunakool, Russ Bates, Augustin {\v
+  Z}{\'i}dek, Anna Potapenko, et~al.
+\newblock Highly accurate protein structure prediction with {AlphaFold}.
+\newblock \emph{Nature}, 596:\penalty0 583--589, 2021.
+
+\bibitem[Kryshtafovych et~al.(2021)Kryshtafovych, Schwede, Topf, Fidelis, and
+  Moult]{kryshtafovych2021casp14}
+Andriy Kryshtafovych, Torsten Schwede, Maya Topf, Krzysztof Fidelis, and John
+  Moult.
+\newblock Critical assessment of methods of protein structure prediction
+  ({CASP})---{R}ound {XIV}.
+\newblock \emph{Proteins: Structure, Function, and Bioinformatics}, 89\penalty0
+  (12):\penalty0 1607--1617, 2021.
+
+\bibitem[Lin et~al.(2023)Lin, Akin, Rao, Hie, Zhu, Lu, Smetanin, Verkuil,
+  Kabeli, Shmueli, dos Santos~Costa, Fazel-Zarandi, Sercu, Candido, and
+  Rives]{lin2023esm2}
+Zeming Lin, Halil Akin, Roshan Rao, Brian Hie, Zhongkai Zhu, Wenting Lu, Nikita
+  Smetanin, Robert Verkuil, Ori Kabeli, Yaniv Shmueli, Allan dos Santos~Costa,
+  Maryam Fazel-Zarandi, Tom Sercu, Salvatore Candido, and Alexander Rives.
+\newblock Evolutionary-scale prediction of atomic-level protein structure with
+  a language model.
+\newblock \emph{Science}, 379\penalty0 (6637):\penalty0 1123--1130, 2023.
+
+\bibitem[Madani et~al.(2023)Madani, Krause, Greene, Subramanian, Mohr, Holton,
+  Olmos, Xiong, Sun, Socher, Fraser, and Naik]{madani2023progen2}
+Ali Madani, Ben Krause, Eric~R. Greene, Subu Subramanian, Benjamin~P. Mohr,
+  James~M. Holton, Jose~Luis Olmos, Caiming Xiong, Zachary~Z. Sun, Richard
+  Socher, James~S. Fraser, and Nikhil Naik.
+\newblock Large language models generate functional protein sequences across
+  diverse families.
+\newblock \emph{Nature Biotechnology}, 41:\penalty0 1099--1106, 2023.
+
+\bibitem[Rao et~al.(2019)Rao, Bhattacharya, Thomas, Duan, Chen, Canny, Abbeel,
+  and Song]{rao2019tape}
+Roshan Rao, Nicholas Bhattacharya, Neil Thomas, Yan Duan, Xi~Chen, John Canny,
+  Pieter Abbeel, and Yun~S. Song.
+\newblock Evaluating protein transfer learning with {TAPE}.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2019.
+
+\bibitem[Rao et~al.(2021{\natexlab{a}})Rao, Meier, Sercu, Ovchinnikov, and
+  Rives]{rao2021transformerplm}
+Roshan Rao, Joshua Meier, Tom Sercu, Sergey Ovchinnikov, and Alexander Rives.
+\newblock Transformer protein language models are unsupervised structure
+  learners.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2021{\natexlab{a}}.
+\newblock Preprint: bioRxiv 2020.12.15.422761.
+
+\bibitem[Rao et~al.(2021{\natexlab{b}})Rao, Liu, Verkuil, Meier, Canny, Abbeel,
+  Sercu, and Rives]{rao2021msa}
+Roshan~M. Rao, Jason Liu, Robert Verkuil, Joshua Meier, John~F. Canny, Pieter
+  Abbeel, Tom Sercu, and Alexander Rives.
+\newblock {MSA} transformer.
+\newblock In \emph{Proceedings of the 38th International Conference on Machine
+  Learning}, 2021{\natexlab{b}}.
+
+\bibitem[Rives et~al.(2021)Rives, Meier, Sercu, Goyal, Lin, Liu, Guo, Ott,
+  Zitnick, Ma, and Fergus]{rives2021esm1b}
+Alexander Rives, Joshua Meier, Tom Sercu, Siddharth Goyal, Zeming Lin, Jason
+  Liu, Demi Guo, Myle Ott, C.~Lawrence Zitnick, Jerry Ma, and Rob Fergus.
+\newblock Biological structure and function emerge from scaling unsupervised
+  learning to 250 million protein sequences.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 118\penalty0
+  (15), 2021.
+
+\bibitem[Simon and Zou(2025)]{simon2025interplm}
+Elana Simon and James Zou.
+\newblock {InterPLM}: Discovering interpretable features in protein language
+  models via sparse autoencoders.
+\newblock \emph{Nature Methods}, 2025.
+\newblock \doi{10.1038/s41592-025-02836-7}.
+
+\bibitem[Steinegger and S{\"o}ding(2017)]{steinegger2017mmseqs2}
+Martin Steinegger and Johannes S{\"o}ding.
+\newblock {MMseqs2} enables sensitive protein sequence searching for the
+  analysis of massive data sets.
+\newblock \emph{Nature Biotechnology}, 35:\penalty0 1026--1028, 2017.
+
+\bibitem[Suzek et~al.(2007)Suzek, Huang, McGarvey, Mazumder, and
+  Wu]{suzek2007uniref}
+Baris~E. Suzek, Hongzhan Huang, Peter McGarvey, Raja Mazumder, and Cathy~H. Wu.
+\newblock {UniRef}: comprehensive and non-redundant {UniProt} reference
+  clusters.
+\newblock \emph{Bioinformatics}, 23\penalty0 (10):\penalty0 1282--1288, 2007.
+
+\bibitem[Vig(2019)]{vig2019bertattention}
+Jesse Vig.
+\newblock A multiscale visualization of attention in the transformer model.
+\newblock In \emph{ACL System Demonstrations}, 2019.
+
+\bibitem[Vig et~al.(2021)Vig, Madani, Varshney, Xiong, Socher, and
+  Rajani]{vig2021bertology}
+Jesse Vig, Ali Madani, Lav~R. Varshney, Caiming Xiong, Richard Socher, and
+  Nazneen~Fatema Rajani.
+\newblock {BERTology} meets biology: Interpreting attention in protein language
+  models.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2021.
+
+\bibitem[Zhang et~al.(2024)Zhang, Wayment-Steele, Brixi, Wang, Kern, and
+  Ovchinnikov]{zhang2024cj}
+Zhidian Zhang, Hannah~K. Wayment-Steele, Garyk Brixi, Haobo Wang, Dorothee
+  Kern, and Sergey Ovchinnikov.
+\newblock Protein language models learn evolutionary statistics of interacting
+  sequence motifs.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 121\penalty0
+  (45), 2024.
+
+\end{thebibliography}

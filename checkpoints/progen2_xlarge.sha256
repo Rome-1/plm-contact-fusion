@@ -1,0 +1,6 @@
+# progen2 variant 'xlarge'
+# Source: huggingface.co/hugohrban/progen2-xlarge
+# Bootstrapped via Modal CPU (volume: structural-jacobian-weights)
+e21eaea17bfbf3f598ca55dd1915701b482daea3cb0104147fec7a008db2305d  model-00001-of-00003.safetensors
+e9003fab3190df80f6b5371f6c976d0ce74190786101d18b66b350ccb4502b06  model-00002-of-00003.safetensors
+2c6a0f9ae3f7f492743c11d37d4ee0fdf1325d3c78d6e2748351316828b16e08  model-00003-of-00003.safetensors

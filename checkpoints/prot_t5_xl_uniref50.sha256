@@ -1,0 +1,4 @@
+# prott5 variant 'XL'
+# Source: huggingface.co/Rostlab/prot_t5_xl_uniref50
+# Bootstrapped via Modal CPU (volume: structural-jacobian-weights)
+c06141d42e93c12b5f6d95c701952156bd4079661f5f2d981d0d2036ba96dae9  pytorch_model.bin

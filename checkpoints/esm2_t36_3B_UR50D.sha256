@@ -1,0 +1,4 @@
+# ESM-2 variant '3B' (ESM-2-3B)
+# Source: huggingface.co/facebook/esm2_t36_3B_UR50D
+0f971f11c449d21422aa982b791619c10351972992c735f4c3cd43fe09790412  pytorch_model-00001-of-00002.bin
+7560b46fc383c691fb74b915b7d4bcef40d3df181447f16ba4b298845e308d0c  pytorch_model-00002-of-00002.bin

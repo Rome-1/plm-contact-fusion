@@ -1,0 +1,4 @@
+# esmc variant '600M' (ESMC-600M, EvolutionaryScale Cambrian, bidirectional masked LM)
+# Source: huggingface.co/biohub/ESMC-600M
+# SHA256 = HF LFS oid of model.safetensors (2,300,205,696 bytes)
+e4232c30fd35fe2f57051ec88a703996ac94520580b4b836894207a3d45d9ff8  model.safetensors
