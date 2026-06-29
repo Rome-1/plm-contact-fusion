@@ -1,7 +1,7 @@
 """Generate appendix tables and figures for the paper.
 
 Outputs:
-  paper/appendix_data.json — machine-readable tables A1, A4, A5, B
+  paper/appendix_data.json   — machine-readable tables A1, A4, A5, B
   paper/figures/FA2_progen2_head_profile.pdf/png
 """
 
@@ -319,7 +319,7 @@ def render_a2_figure():
         ax.grid(True, which="both", alpha=0.3)
         # Annotate top-1
         ax.scatter([1], [flat_sorted[0]], color=color, s=30, zorder=5)
-        ax.annotate(f" top-1 = {flat_sorted[0]:.3f}", (1, flat_sorted[0]), fontsize=9)
+        ax.annotate(f"  top-1 = {flat_sorted[0]:.3f}", (1, flat_sorted[0]), fontsize=9)
     fig.suptitle("Figure A2 — Head-precision rank profile: MLM (sharp spike) vs causal (flat)")
     fig.tight_layout()
     fig.savefig(OUT_FIG_DIR / "FA2_progen2_head_profile.pdf", bbox_inches="tight")

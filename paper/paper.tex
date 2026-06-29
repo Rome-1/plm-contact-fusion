@@ -39,36 +39,30 @@ a single-forward-pass alternative to the Categorical Jacobian}
 \noindent
 The Categorical Jacobian of \citet{zhang2024cj} reads protein contacts
 from a language model by perturbing every residue with every alternative
-amino acid, about $19L$ forward passes. We show the signal it
-reconstructs is already concentrated in a small subset of attention heads:
-averaging the top-$K$ contact-relevant heads (selected on as few as 10
-labeled proteins) recovers contacts in one forward pass and beats the
-Categorical Jacobian on leakage-clean data for every bidirectional model
-where logit-CJ is defined --- and matches or beats it in-distribution
-across architectures, the lone exceptions being the smallest 8M model
-(where fusion trails at the shared $K{=}10$ default) and ESM Cambrian
-(a statistical tie). Ablations localize the gain to
-labeled head \emph{selection}, not to averaging: at a matched label
-budget the unweighted mean ties a supervised $L_1$ logistic regression
-fit on the same heads, so the parameter-free mean is selection's
-minimal form rather than the source of the advantage. Our
-primary test is leakage-clean. On a CAMEO split where neither selection
-nor evaluation touches data the models have plausibly memorized, the head
-readout beats the Categorical Jacobian on ESM-2-650M by $+9$pp
-($N{=}29$, $p<0.001$), with the within-model margin reproducing across
-architectures on a wider pretraining-aware set. Both methods fall
-30--36 percentage points (fusion $\sim$30pp, CJ $\sim$36pp) from their
-in-distribution Zhang numbers to the leakage-clean numbers, a drop
-consistent with substantial pretraining overlap inflating prior
-in-distribution numbers; the CAMEO-vs-Zhang difficulty shift contributes
-as well, so we read it as an upper bound on the leakage component.
-We additionally introduce representation-CJ (repr-CJ), a hidden-state
-generalization of the Jacobian for architectures without a masked-LM head;
-show that the optimal $K$ tracks how diffusely a model spreads its contact
-heads; and find that both methods lose the contact signal on both causal
-LMs we test (ProGen2-large and -xlarge, smaller no better than larger),
-suggesting attention-encoded pair structure may
-depend on bidirectional pretraining.\footnote{Code, figure-regeneration
+amino acid, about $19L$ forward passes. We show the signal it reconstructs
+is already concentrated in a small subset of attention heads: averaging
+the top-$K$ contact-relevant heads --- selected on as few as 10 labeled
+proteins, with no fitted per-pair or per-head weights --- recovers
+contacts in a single forward pass and matches or beats the Categorical
+Jacobian for every bidirectional model where it is defined (bar the
+smallest, 8M). Our primary test is
+leakage-clean: on a CAMEO split where neither selection nor evaluation
+touches data the models have plausibly memorized, the head readout beats
+the Categorical Jacobian on ESM-2-650M by $+9$pp ($N{=}29$, $p<0.001$),
+with the within-model margin reproducing across architectures. Ablations
+localize the gain to labeled head \emph{selection}, not to averaging: at
+a matched label budget the unweighted mean ties a supervised $L_1$
+logistic regression on the same heads. Both methods fall 30--36pp from
+their in-distribution Zhang numbers to the leakage-clean split, which we
+read as an upper bound on how much prior numbers reflect pretraining
+overlap. We additionally introduce representation-CJ, a hidden-state
+generalization of the Jacobian to architectures without a masked-LM head
+(the output-head-independent analogue of logit-CJ), agreeing with the
+Categorical Jacobian where both are defined (per-protein Pearson $r \approx 0.95$); show that
+the optimal $K$ tracks how diffusely a model spreads its contact heads;
+and find both methods lose the signal on the two causal LMs we test,
+suggesting attention-encoded pair structure may depend on bidirectional
+pretraining.\footnote{Code, figure-regeneration
 scripts, and the summary result tables (per-cell means and bootstrap
 intervals) are available at
 \url{https://github.com/Rome-1/plm-contact-fusion}.}
@@ -110,11 +104,12 @@ is not the mean --- \citet{rao2021transformerplm} already showed it
 beats their fitted regression --- but that it needs no regression and
 no per-pair labels (a 10-protein ranking suffices), survives a
 leakage-clean evaluation, improves on the Categorical Jacobian, and
-generalizes to encoder--decoder and causal architectures. We extend this
-line in a label-efficient direction. The unweighted arithmetic mean of
+extends to encoder--decoder architectures (it can be applied to causal
+LMs too, but the signal collapses there; Section~\ref{sec:causal}).
+We extend this line in a label-efficient direction. The unweighted arithmetic mean of
 the top-$K$ heads, with $K$ chosen once from a disjoint 10-protein
-head-precision ranking and no per-pair weight fitting, gives an
-unsupervised contact-prediction signal that exceeds CJ on every masked-LM
+head-precision ranking and no per-pair weight fitting, gives a
+label-efficient contact-prediction signal that exceeds CJ on every masked-LM
 and encoder--decoder PLM we test, in one forward pass instead of
 $\sim 19L$, on data filtered to remove sequence-level pretraining
 overlap. The
@@ -125,7 +120,9 @@ PLMs allocate pair structure across their attention heads.
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.95\linewidth]{F1_headline}
-  \caption{Top-$L/2$ long-range precision on Zhang eval-200 across nine
+  \caption{Top-$L/2$ long-range precision (fraction of the $L/2$
+  highest-scoring $|i{-}j|\geq24$ pairs that are true contacts) on Zhang
+  eval-200 across nine
   protein-LM variants (ESM-2 at five scales, ESM-1b, AMPLIFY-350M,
   ProtT5-XL, ProGen2-xlarge). Naive-mean fusion of the top-$K$ attention
   heads (blue) beats the per-protein top-1 head (grey) and the
@@ -147,7 +144,7 @@ The end-to-end leakage-clean comparison is the central finding
 (\emph{leakage-clean}: evaluated only on protein chains deposited after a
 tested model's pretraining cutoff and filtered for sequence similarity
 per \citet{hermann2024leakage}):
-with head selection on one half of CAMEO-PTA25 (a pretraining-aware
+with head selection on one half of CAMEO-PTA25 (our 2025 pretraining-aware
 CAMEO split of post-2022-09 targets, defined in Section~\ref{sec:setup})
 and evaluation on the
 disjoint other half (no Zhang chains anywhere in the pipeline),
@@ -156,7 +153,7 @@ attention head (Section~\ref{sec:fusion-beats-cj}). The pattern
 reproduces on a wider CAMEO-PTA25 set across three
 architectures (ESM-2-650M, ESM-2-3B, ProtT5-XL). Three further results
 follow. \emph{(i)~Cross-architecture replication} on Zhang eval-200 and
-CASP14-FM extends to five PLMs spanning masked-LM and encoder--decoder
+CASP14 free-modeling (CASP14-FM) extends to five PLMs spanning masked-LM and encoder--decoder
 objectives. \emph{(ii)~Representation-CJ}, a hidden-state
 generalization of logit-CJ, applies to architectures lacking a
 per-position MLM head and agrees with logit-CJ where both are defined
@@ -202,7 +199,7 @@ and extended to PLMs by \citet{vig2021bertology}, \citet{bepler2019contact},
 \citet{rao2021transformerplm}, \citet{rao2021msa}, and
 \citet{bhattacharya2021attention}. The closest methodological neighbor
 is \citeauthor{rao2021transformerplm}'s $L_1$-regularized logistic
-regression over per-head APC'd attention maps on ESM-1b, which acts
+regression over per-head average-product-corrected (APC'd) attention maps on ESM-1b, which acts
 as an implicit sparse head selector ($\sim 102/660$ heads receive
 non-zero weight; top-$L/2$ long-range $= 0.533$); they additionally
 report that averaging the top-10 selected heads \emph{unweighted}
@@ -210,7 +207,7 @@ outperforms the fitted regression. Our setup is closest in mechanism
 to that unweighted top-$k$ variant: we differ in selecting on a
 small head-precision ranking (as few as 10 proteins) rather than via a
 regression fit to per-pair contact labels on full PDB chains. \citet{rao2021msa}
-extends the recipe to MSA inputs at higher precision.
+extends the recipe to multiple-sequence-alignment (MSA) inputs at higher precision.
 \citet{bhattacharya2021attention} demonstrated, on \emph{ProtBERT-BFD},
 that contact signal concentrates in a small subset of heads (6 of
 480) and that a single layer's attention is often sufficient; the
@@ -281,11 +278,11 @@ the masked-LM readout our methods assume --- to future work.
 \paragraph{Supervised alternatives.}
 Supervised structural prediction \citep{jumper2021af2,lin2023esm2}
 reaches substantially higher absolute contact precision than any
-unsupervised attention-readout method, including ours. The comparison
+attention-readout method, including ours. The comparison
 is orthogonal: supervised methods learn a structure-prediction
-function on labeled contact maps, while unsupervised methods read out
-what the PLM has \emph{already} encoded from sequence pretraining
-alone. The question we ask here --- what does the model know
+function on labeled contact maps, while readout methods (CJ, and our
+few-shot head selection) recover what the PLM has \emph{already} encoded
+from sequence pretraining alone, using no supervised contact head. The question we ask here --- what does the model know
 without further training? --- has a different epistemic status than
 the question of how accurately a supervised head can be fit on top
 of it. We comment in Section~\ref{sec:discussion} on the implicit
@@ -324,10 +321,11 @@ from a single $(L,L)$ score map per method.
 We use three evaluation sets, summarized in Table~\ref{tab:datasets}.
 CAMEO-PTA25 is our primary, leakage-clean set: 553 single-chain CAMEO
 targets deposited on or after 2022-09-01 (post-dating ESM-2's UniRef50
-2021\_04 pretraining release), filtered against current
-UniRef50 \citep{suzek2007uniref} at 50\% MMseqs2
-\citep{steinegger2017mmseqs2} identity / 80\% query coverage following
-the leakage protocol of \citet{hermann2024leakage}; of the 56 targets
+2021\_04 pretraining release), then filtered --- as a conservative proxy
+for the pretraining-time release --- to \emph{retain only} targets with no
+hit in current UniRef50 \citep{suzek2007uniref} at $\geq$50\% MMseqs2
+\citep{steinegger2017mmseqs2} identity over $\geq$80\% query coverage,
+following the leakage protocol of \citet{hermann2024leakage}; of the 56 targets
 that pass, 39 retain $L \geq 75$ (the long-range eligibility cutoff), of
 which 29 form the leakage-clean evaluation half. The \emph{PTA25} tag
 marks the pretraining-aware CAMEO snapshot (assembled in 2025) rather
@@ -406,7 +404,9 @@ subtracts the per-row and per-column background co-variation that
 otherwise swamps the true contact signal), and symmetrize.
 
 Logit-CJ requires a per-position categorical head, so it applies only
-to bidirectional masked-LM architectures (ESM, AMPLIFY). We generalize
+to models with a compatible per-position categorical head (the ESM-family
+models here; AMPLIFY lacks the exposed logit head logit-CJ needs in our
+setup). We generalize
 it to any architecture exposing per-position hidden states $h$ (the
 residual-stream vector at a position and layer) by replacing the logit
 response with a hidden-state response:
@@ -426,18 +426,58 @@ halves those entries relative to reading the populated triangle
 directly --- a monotone rescaling that leaves the rank order of pairs,
 and hence top-$L/2$ long-range precision, unchanged.
 
+\paragraph{Why repr-CJ tracks logit-CJ: a metric-choice view.}
+The two readouts measure the perturbation response in different spaces.
+If the masked-LM head were a linear map $z = Wh$ from the final hidden
+state $h \in \mathbb{R}^{d}$ to logits $z$, a hidden-state perturbation
+$\Delta h$ would give $\Delta z = W\,\Delta h$ and
+$\|\Delta z\|_2^2 = \Delta h^\top (W^\top W)\, \Delta h$: a logit readout
+measures the displacement under the head-induced quadratic form
+$W^\top W$ (positive-semidefinite, Mahalanobis-type), a hidden-state
+readout under the Euclidean metric. This is the intuition for why the
+two track each other, not an exact account of the headline numbers:
+Standard/logit-CJ mean-centers a four-index tensor and takes a Frobenius
+norm over the two amino-acid axes, whereas repr-CJ averages
+per-substitution hidden-displacement norms, so the two differ in
+centering and aggregation as well as in metric, and the per-protein
+agreement (Pearson $r = 0.95$--$0.96$, Table~\ref{tab:repr-cj-arch})
+reflects similar downstream behavior rather than the metric alone.
+
+We isolate the metric in Appendix~\ref{app:wtw}: repr-CJ (Euclidean), a
+$W^\top W$ readout (\textbf{WtW-CJ}, $\|W\Delta h\|_2$, $W$ the tied
+output embedding), and a metric-matched logit readout are computed from a
+single perturbation sweep with identical post-processing, so they differ
+only in how the same hidden displacement is read out. Swapping Euclidean for
+$W^\top W$ barely changes the readout (long-range pair Pearson $0.985$):
+on the sampled contact-carrying displacements $W^\top W$ acts nearly like
+a scaled Euclidean metric. This is near-isometry on those directions, not
+global isotropy --- $W$ has at most $20$ amino-acid rows, so $W^\top W$
+has rank $\leq 20$ (fewer after centering) and cannot be isotropic across
+the $d$-dimensional hidden space; the agreement constrains it only on the
+perturbations observed. Anisotropy is therefore one source of any
+repr/logit divergence, alongside the head's nonlinearity and layer
+normalization, the four-index centering, and finite (rather than
+infinitesimal) substitutions, so we expect the readouts to come apart
+when the head strongly distorts the relevant displacements. Because
+repr-CJ swaps the learned output-head metric for Euclidean hidden-state
+distance, it is best read as the \emph{output-head-independent} analogue
+of logit-CJ rather than a literal metric variant; the full first-order
+head metric is $J_f(h)^\top J_f(h)$ (the Jacobian of the whole head), of
+which $W^\top W$ is only the tied-embedding term.
+
 \subsection{Top-$K$ attention fusion}
 \label{sec:fusion}
 
 For each (layer, head) of an attention-LM we extract the
-per-head attention map (symmetrize, APC, zero-diagonal) and score it
+per-head attention map (symmetrize, APC, zero-diagonal; for encoder--decoder
+models this is the encoder self-attention) and score it
 by $\text{P}@L/2$ long against a small labeled selection set, disjoint
 from the evaluation set (both the Zhang eval-200 and the CAMEO-PTA25
 results select on a disjoint 10-protein subset; only the matched-budget
 control against the $L_1$-LR in Appendix~\ref{app:rao-baseline} uses 50,
 the larger budget needed to fit that regression). A selection-set-size sweep
 (Appendix~\ref{app:selection-size}) shows 10 proteins suffice.
-Averaging precisions gives a global head ranking; the \textbf{top-$K$
+Averaging precisions (unweighted over selection proteins) gives a global head ranking; the \textbf{top-$K$
 heads} are the only labeled step. Our default operator is the
 arithmetic mean over the top-$K$ APC'd maps:
 $S = \tfrac{1}{K} \sum_{k=1}^{K} A_{k}$, scored by
@@ -476,6 +516,51 @@ the paper.
 
 \section{Results}
 
+\subsection{Fusion reads contacts more confidently than perturbation}
+\label{sec:confidence}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{F_confidence}
+  \caption{\textbf{Fusion is the most confident contact readout.} \emph{Top:}
+  per-method score maps (long-range region; magma, short-range band $|i-j|<24$
+  masked) for the shortest, middle, and longest proteins of a length-stratified
+  ESM-2-650M Zhang eval-200 sample; true long-range contacts overlaid in cyan,
+  with per-cell top-$L/2$ long precision. Top-$K$ attention fusion concentrates
+  its score mass on a few pairs that track the true contacts; the Categorical
+  Jacobian and its representation variants (logit-/repr-/WtW-CJ) spread the same
+  signal more diffusely, and the single best head is noisier still.
+  \emph{Bottom:} across $N{=}40$ proteins, fusion alone occupies the
+  high-confidence, high-precision corner --- it is both the sharpest
+  readout (its $L/2$ decision-cutoff score sits furthest above the map mean) and
+  the most accurate. Metric definitions and the per-method table are in
+  Appendix~\ref{app:confidence}.}
+  \label{fig:confidence}
+\end{figure}
+
+Before the quantitative comparisons, Figure~\ref{fig:confidence} shows what the
+methods actually produce. We read a readout's \emph{confidence} off how
+decisively its score map concentrates on a few predicted contacts, its
+sharpness: how concentrated the score mass is (Gini) and how far the
+top-$L/2$ decision cutoff sits above the map mean (a $z$-score). Alongside it we
+report two discriminability diagnostics that are not confidence measures:
+a $d'$ label separation (the gap between the mean true-contact and
+non-contact scores, in units of their pooled standard deviation) and
+top-decile enrichment, to check whether sharpness coincides with better
+discrimination (Appendix~\ref{app:confidence}). On a length-stratified
+ESM-2-650M Zhang eval-200 sample, top-$K$ fusion is the most confident readout:
+its score mass is by far the most concentrated (Gini $0.26$ vs.\
+$0.12$--$0.17$ for the perturbation methods and the single head, at the highest
+cutoff $z$), and that confidence is warranted, because fusion is also the most
+accurate (P@$L/2$ long $0.78$), the only method in the high-sharpness,
+high-precision corner of Figure~\ref{fig:confidence} (bottom). On the
+label-separation diagnostic the perturbation readouts are
+marginally higher ($d'$: repr-CJ $1.35$ vs.\ fusion $1.24$), so fusion's
+edge is concentration (it commits to a few pairs and is right) rather than
+raw discriminability, which the perturbation methods spread more evenly across
+the map. The single best head is both the least concentrated and the least
+accurate.
+
 \subsection{Fusion of top-$K$ attention heads beats CJ across architectures}
 \label{sec:fusion-beats-cj}
 
@@ -502,7 +587,7 @@ targets and evaluate fusion on the disjoint remaining $L \geq 75$
 targets ($N{=}29$). This uses a 10-protein selection budget (matching the
 in-distribution protocol) rather than the larger half-split, which
 leaves more targets for evaluation. On ESM-2-650M, fusion beats Standard
-CJ significantly (Table~\ref{tab:cameo-clean}); even the per-protein
+CJ significantly (Table~\ref{tab:cameo-clean}); even the globally selected
 top-1 head already matches CJ ($0.396$ vs $0.369$, n.s.), so on
 leakage-clean data CJ's $\sim$$19L$ perturbations buy nothing over
 reading a single head; fusion ($0.459$) then beats CJ by $+9$pp and
@@ -608,7 +693,7 @@ reach $\text{P}@L/2$ long $\approx 0.6$--$0.8$ on contemporary
 contact-prediction benchmarks; supervised MSA-augmented attention
 readouts \citep{rao2021msa} reach $\approx 0.6$--$0.7$. Our
 leakage-clean operating point ($\approx 0.4$ absolute) sits below both,
-as expected for an unsupervised, MSA-free method on data the
+as expected for a label-efficient, MSA-free method on data the
 model has not memorized. The interpretable comparison is the
 $+5$-pp range gap over CJ.
 
@@ -655,7 +740,11 @@ in Appendix~Figure~\ref{fig:repr-cj}), and the two ESMC scales replicate
 the tight correlation on Zhang-50. Repr-CJ thus extends the Jacobian
 construction faithfully where logit-CJ is undefined; per-architecture
 numbers are in
-Table~\ref{tab:repr-cj-arch}.
+Table~\ref{tab:repr-cj-arch}. Beyond aggregate precision, the two readouts
+also agree at the \emph{pair} level (top-$L/2$ long-range Jaccard $0.73$,
+long-pair Pearson $0.95$ on ESM-2-650M), and a $W^\top W$-metric readout
+inserted between them supports the metric-choice account of
+Section~\ref{sec:repr-cj-method} (Appendix~\ref{app:wtw}).
 
 \begin{table}[h]
 \centering
@@ -739,9 +828,11 @@ window. Global selection over all layers is the more conservative recipe.
 \subsection{Causal language models: a scope boundary}
 \label{sec:causal}
 
-Causal masking enforces $h_j = f(s_{\leq j})$, so a causal LM has no
-architectural slot for the symmetric pair statistic that
-attention-readout methods exploit. We test the prediction on two
+Causal masking enforces $h_j = f(s_{\leq j})$: each position attends
+only to its left context. We hypothesize this leaves less room for the
+symmetric pair statistic that attention-readout methods exploit ---
+though directional attention can in principle still feed a symmetric
+downstream readout. We test it on two
 ProGen2 variants \citep{madani2023progen2}: ProGen2-xlarge ($\sim$6.4B
 params) and ProGen2-large ($\sim$2.7B params), both trained
 autoregressively on UniRef90. Every attention-readout
@@ -774,12 +865,57 @@ byproduct of how the transformer processes the sequence, not
 something that needs to be reconstructed via perturbation. The
 per-protein cost of fusion is therefore one forward pass at test
 time, plus a one-time head-probe cost on a small labeled set (10
-proteins) that is shared across all subsequent test proteins. The per-cell wall-clock and
-amortized-cost curves are in Appendix~\ref{app:a5}
-(Table~\ref{tab:a5}, Figure~\ref{fig:cost}). Break-even sits below
-20 test proteins on every cell we measured; the gap widens with both
-model size and protein length because CJ's wall scales as $O(L)$
-while fusion's is $L$-independent at test time.
+proteins) that is shared across all subsequent test proteins.
+Figure~\ref{fig:cost} summarizes the per-protein wall-clock and the
+measured per-model speedup; the underlying per-protein timing table is in
+Appendix~\ref{app:a5} (Table~\ref{tab:a5}). Fusion's one-time
+10-protein head probe (one per model) is only $\sim$10 forward passes --- negligible
+against CJ's $\sim 19L$ forwards per test protein --- so fusion is
+cheaper from small $N$; the gap widens
+with both
+model size and protein length because CJ needs $\sim 19L$ forward
+passes to fusion's one. Fusion's number of model evaluations does
+not grow with $L$; its wall-clock still does --- a single forward is at
+least $O(L^2)$ in the attention --- but far more slowly than CJ's
+$\sim 19L$ forwards. The measured per-protein advantage is therefore
+large and grows with model size: on identical A100-80GB hardware and
+precision, median wall-clock speedups run from $\sim 150\times$
+(ESM-2-35M) to $\sim 1600\times$ (ESM-2-3B) on Zhang eval-200, and
+$\sim 466\times$ on the CASP14-FM targets both methods can
+run (Appendix~\ref{app:a5}); fusion's peak GPU memory is also
+$2$--$5\times$ lower. This is measured against the batched CJ
+implementation (perturbations batched for memory, $\sim$32--64 per
+forward), not an unbatched strawman.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{F2_cost_economy}
+  \caption{\textbf{Compute economy.} (a)~Per-protein wall-clock vs.\
+  protein length $L$ on ESM-2-\{150M, 650M, 3B\} (log $y$): CJ (filled)
+  scatters along the $\sim 19L$-forward trend; fusion (open markers) is a
+  real per-protein measurement on the \emph{same} proteins and hardware
+  --- it grows mildly with $L$ but sits $2$--$3$ orders of magnitude below
+  CJ. The gap is the $\sim 19L$-vs-$1$ forward-count ratio, not
+  length-independence.
+  (b)~Measured per-protein wall-clock speedup (CJ\,/\,fusion) vs.\ model
+  size on ESM-2-\{35M, 150M, 650M, 3B\} (Zhang eval-200, log--log; markers
+  are the per-protein median, whiskers the per-protein min--max): the
+  advantage grows monotonically with scale, from $\sim 150\times$ at 35M to
+  $\sim 1600\times$ at 3B, because CJ's $\sim 19L$ forwards cost more on a
+  larger backbone while fusion stays at one. Every point is measured on
+  identical A100-80GB hardware (Table~\ref{tab:a5}), not extrapolated.}
+  \label{fig:cost}
+\end{figure}
+
+Fusion also scales past the backbone's context window. A protein
+longer than the model's context can be read either by tiling it into
+overlapping windows and stitching the per-window maps, or by using a
+backbone with a longer or extrapolating context (ProtT5's relative-position
+attention; ESMC's $2{,}048$-token rotary context). Stitching is
+nearly lossless on feasible proteins, and on the two CASP14-FM targets that
+exceed ESM-2's $1{,}024$-token limit both routes recover comparable contacts
+at $\sim$1\,s of forwards --- where a tiled Categorical Jacobian would cost
+$\sim 19W$ per window. We develop this in Appendix~\ref{app:stitch}.
 
 \section{Discussion}
 \label{sec:discussion}
@@ -795,7 +931,7 @@ the best single attention head on leakage-clean data
 (Section~\ref{sec:fusion-beats-cj}); its Zhang eval-200 (in-distribution) edge over the
 top-1 head is partly a memorization edge. \emph{(ii)} A supervised
 $L_1$-LR at the same 50-protein label budget reaches the same
-precision as the unsupervised top-$K$ mean on the clean control
+precision as the unweighted top-$K$ mean on the clean control
 (Appendix~\ref{app:rao-baseline}): the operative variable is the
 labeled head selection, not the parametric form of the readout.
 \emph{(iii)} The 30--36pp absolute drop from Zhang eval-200 to
@@ -820,9 +956,12 @@ classifies a new architecture into its diffuseness regime
 (Appendix~\ref{app:b}) and picks $K$ by a short sweep accordingly.
 
 \paragraph{The causal-LM boundary.}
-Causal masking ties each position's representation to its left context,
-which leaves no architectural slot for the symmetric pair statistic
-that attention-readout methods exploit. Both ProGen2 variants show flat
+Causal masking ties each position's representation to its left context.
+We read the collapse as consistent with bidirectional pretraining
+mattering for the symmetric pair statistic that attention-readout
+methods exploit, rather than as an architectural impossibility ---
+directional attention could still support a symmetric readout in
+principle. Both ProGen2 variants show flat
 head-precision profiles and complete collapse of fusion and repr-CJ
 (Section~\ref{sec:causal}); the smaller variant is worse, not better,
 ruling out a scale-specific artifact. The boundary now holds on two
@@ -857,7 +996,23 @@ pretraining and evaluation but not for fold-level overlap; a stricter
 structural-similarity filter against the pre-cutoff PDB would
 tighten the lower bound on memorization (we leave it to future work).
 We do not report results on the multi-track ESM-3 family
-\citep{hayes2025esm3} or on a causal PLM outside the ProGen2 family.
+\citep{hayes2025esm3} or on a causal PLM outside the ProGen2 family,
+and we test only protein language models: because fusion reads native
+attention, the same readout should extend to any sequence language model
+with self-attention, and the Categorical Jacobian already runs on genomic
+LMs (Evo, gLM2), so nucleic-acid contact readout is a natural extension.
+Both methods also inherit the backbone's context-window bound: ESM-2's
+$1{,}024$-token limit means neither the single fusion forward nor CJ's
+$\sim 19L$ sweep can process a longer chain in one piece (two CASP14-FM
+targets, $L{=}1372$ and $2180$, are excluded from every timing and
+accuracy number above). Longer chains can be reached either by tiling
+into overlapping windows and stitching a short-context backbone, or by
+running a longer-context backbone natively (ProtT5's relative-position
+attention, ESMC's $2{,}048$-token rotary context; neither truly unbounded,
+Appendix~\ref{app:stitch}): stitching is nearly lossless on
+feasible proteins, and both routes recover comparable contacts on two real
+$L{>}1024$ targets in $\sim$1\,s of forwards, where a tiled Categorical
+Jacobian is prohibitive. A full long-protein benchmark remains future work.
 For ESMC, both Zhang eval-200 and our 2022-09-cutoff CAMEO-PTA25 split
 pre-date its 2024 pretraining, so the in-distribution comparisons
 ride backbone quality but are not leakage-clean for ESMC; the
@@ -877,7 +1032,7 @@ The central finding of this paper is that pre-trained protein language
 models already expose long-range contact structure directly through
 their attention maps. A small, identifiable cluster of attention heads
 carries this signal, and the naive arithmetic mean of that cluster ---
-with no learned weights at inference time --- is a sharper unsupervised
+with no learned weights at inference time --- is a sharper label-efficient
 contact predictor than the Categorical Jacobian's perturbation-based
 readout, at a fraction of the compute. This suggests that the
 Jacobian's $\sim 19L$ perturbations are not \emph{extracting} contact
@@ -1279,7 +1434,8 @@ unsupervised):} same recipe restricted to the last 30\% of layers
 finding. (c) \textbf{Truncated Rao L1-LR (50-protein supervised):}
 $L_1$-regularized logistic regression over per-pair attention features
 on long-range upper-triangle pairs, fit on \emph{our} 50-protein
-labeled training set; the same label budget our
+labeled training set (Zhang-50, disjoint from the CAMEO eval-29 targets);
+the same label budget our
 head-precision ranking uses. We sweep $C \in \{0.01, 0.1, 1.0\}$
 (picking $C{=}1$ for the reported result; $C{=}0.01$ and $0.1$ are
 non-significantly worse). The fit selects $592/660$ heads with
@@ -1332,7 +1488,7 @@ head selection buys when paired with our per-head precision ranking.
 The truncated L1-LR baseline closes the same gap from a different
 angle: a supervised regression at the same 50-protein label budget
 reaches $0.457$ on the leakage-clean control, within bootstrap noise
-of our unsupervised naive-mean fusion ($0.459$). The
+of our label-efficient naive-mean fusion ($0.459$). The
 practical implication is that for the leakage-clean operating point
 we recommend in this paper, the simpler, parameter-free arithmetic
 mean is no worse than the parametric L1-LR at the same label budget;
@@ -1499,6 +1655,125 @@ Layer & Mean & 95\% CI & $N$ \\
 \end{tabular}
 \end{table}
 
+\section{Pair-level agreement of repr-CJ, WtW-CJ, and logit-CJ}
+\label{app:wtw}
+
+Section~\ref{sec:repr-cj-method} predicts that the three perturbation-CJ
+readouts form a metric hierarchy: repr-CJ (Euclidean, $\|\Delta h\|_2$),
+WtW-CJ (Mahalanobis under the tied output embedding $W$, $\|W\Delta h\|_2$),
+and a metric-matched logit readout (the full masked-LM head,
+$\|\Delta z\|_2$, with the same mean-of-norms post-processing as the other
+two, so it differs from the four-index-centered Standard CJ reported
+separately below). We compute all
+three from a \emph{single} perturbation sweep per protein --- so the
+comparison isolates the readout metric, not the post-processing, which is
+identical across the three (mean over alternative amino acids, symmetrize,
+APC, zero-diag) --- on length-stratified Zhang eval-200 subsamples of
+ESM-2-650M ($N{=}50$) and ESM-2-3B ($N{=}30$). Table~\ref{tab:wtw} reports,
+for each pair of readouts, the mean top-$L/2$ long-range pair Jaccard and
+the mean Pearson correlation of long-range pair scores.
+
+Two predictions are confirmed, and replicate across both scales.
+\emph{(i)~Swapping in the $W^\top W$ metric barely reorders pairs:}
+repr-CJ and WtW-CJ agree most tightly of any pair (Pearson $0.985$ at
+650M, $0.982$ at 3B; Jaccard $0.84$--$0.85$), so on the sampled
+contact-carrying displacements $W^\top W$ acts nearly like a scaled
+Euclidean metric. This is near-isometry on those directions, not global
+isotropy: $W$ is the $\leq 20$-row amino-acid output embedding, so
+$W^\top W$ has rank $\leq 20$ and cannot be isotropic across the
+$d$-dimensional hidden space; the agreement constrains it only on the
+perturbations observed. \emph{(ii)~The
+residual gap is the rest of the head, not the metric:} WtW-CJ's agreement
+with the \emph{true} logit-CJ (Pearson $0.929$/$0.912$) is markedly lower
+than its agreement with repr-CJ ($0.985$/$0.982$), so the dense\,$\to$\,GELU\,$\to$\,LayerNorm
+stage of the head beyond the tied embedding --- not the linear metric on
+it --- accounts for most of the logit-CJ\,/\,repr-CJ difference. This
+stage folds a linear dense projection together with LayerNorm and the
+GELU nonlinearity, so isolating the nonlinear part alone would require a
+full-head Jacobian readout ($J_f(h)^\top J_f(h)$) we do not run. All three readouts reach the same contact
+precision within noise (650M: logit $0.734$, repr $0.749$, WtW $0.740$,
+vs.\ cached Standard CJ $0.733$; 3B comparable). This grounds the
+metric-choice reading of repr-CJ (Section~\ref{sec:repr-cj-method}) in a
+direct pair-level measurement rather than aggregate-precision agreement
+alone.
+
+\begin{table}[h]
+\centering
+\small
+\caption{\textbf{Pair-level agreement between perturbation-CJ readouts}
+(Zhang eval-200, length-stratified; all three maps from one shared sweep
+per protein). Top-$L/2$ long-range pair Jaccard and long-range pair-score
+Pearson, averaged over proteins. repr\,$\approx$\,WtW (metric
+choice barely reorders pairs) at both scales; the residual gap to
+logit-CJ is the rest of the head beyond the tied embedding.}
+\label{tab:wtw}
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{ESM-2-650M ($N{=}50$)} & \multicolumn{2}{c}{ESM-2-3B ($N{=}30$)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Readout pair & Jaccard & Pearson & Jaccard & Pearson \\
+\midrule
+repr-CJ \,vs\, WtW-CJ   & 0.85 & 0.985 & 0.84 & 0.982 \\
+logit-CJ \,vs\, repr-CJ & 0.73 & 0.946 & 0.70 & 0.930 \\
+logit-CJ \,vs\, WtW-CJ  & 0.70 & 0.929 & 0.68 & 0.912 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Confidence metrics by method}
+\label{app:confidence}
+
+For Figure~\ref{fig:confidence} we score each method's $(L,L)$ map on the
+long-range upper-triangle pairs ($|i-j|\geq 24$, valid residues) of each
+protein. Let $s$ be the pair scores and $y$ the true-contact labels. We read
+\emph{confidence} as \emph{sharpness} --- how decisively the map concentrates
+score on a few pairs --- via (i) the cutoff $z$-score
+$(s_{(L/2)}-\bar s)/\mathrm{std}(s)$, how far the $L/2$-th highest score sits
+above the map mean, and (ii) the Gini coefficient of the (min-shifted) score
+mass, a scale-free concentration measure. Separately --- to test whether
+sharpness coincides with better \emph{discrimination}, a distinct property --- we
+report two diagnostics that are \emph{not} confidence measures: the $d'$ label
+separation $(\bar s_{y=1}-\bar s_{y=0})/\sqrt{\tfrac12(\mathrm{var}_{1}+\mathrm{var}_{0})}$,
+and top-decile enrichment (precision of the highest-scoring $10\%$ of pairs --- a
+rank-enrichment diagnostic, not probability calibration). All quantities are
+scale-free or rank-based, so they compare across methods whose maps live on
+different scales; each is computed per protein and averaged over $N{=}40$
+length-stratified ESM-2-650M Zhang eval-200 proteins (Table~\ref{tab:confidence}).
+
+The reading is consistent. Fusion is the most concentrated (confident) readout
+by a wide margin (Gini $0.26$, highest cutoff $z$) and the most accurate
+(P@$L/2$ $0.78$): its confidence is warranted. The single best head is the least
+concentrated (Gini $0.12$) and least accurate. The perturbation readouts
+(logit-/repr-/WtW-CJ) sit between in sharpness --- but on the $d'$
+label-separation diagnostic they are marginally \emph{higher} than fusion
+(repr-CJ $1.35$ vs.\ $1.24$): they elevate true contacts more evenly across the
+map rather than concentrating signal on the top pairs. Fusion's advantage is
+therefore decisiveness (concentration) plus accuracy, not raw discriminability
+--- which is exactly why $d'$ is reported as a check rather than as the
+confidence measure.
+
+\begin{table}[h]
+\centering
+\small
+\caption{\textbf{Confidence and discriminability by method} (ESM-2-650M, Zhang
+eval-200, $N{=}40$ length-stratified; mean (sem)). \emph{Confidence} = sharpness
+(cutoff $z$, Gini). The remaining columns are discriminability diagnostics, not
+confidence: top-$L/2$ long precision, $d'$ label separation, and top-decile
+enrichment. Bold marks the per-column best.}
+\label{tab:confidence}
+\begin{tabular}{lccccc}
+\toprule
+Method & cutoff $z$ & Gini & P@$L/2$ & $d'$ & top-dec. \\
+\midrule
+Fusion (top-10) & \textbf{6.79} (.19) & \textbf{0.259} (.009) & \textbf{0.778} (.012) & 1.240 (.018) & \textbf{0.120} (.005) \\
+repr-CJ          & 6.55 (.19) & 0.159 (.007) & 0.748 (.013) & \textbf{1.352} (.029) & 0.117 (.006) \\
+WtW-CJ           & 6.41 (.18) & 0.153 (.007) & 0.744 (.013) & 1.334 (.028) & 0.115 (.005) \\
+logit-CJ         & 6.46 (.19) & 0.167 (.007) & 0.729 (.015) & 1.271 (.027) & 0.117 (.005) \\
+Top-1 head       & 5.52 (.16) & 0.117 (.004) & 0.698 (.015) & 0.916 (.015) & 0.114 (.005) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{Head-precision profile on ProGen2 vs ESM-2-650M}
 \label{app:a2}
 
@@ -1592,60 +1867,42 @@ drop magnitudes; we use mean replacement throughout.
 \section{Per-test wall-clock and selection-set transfer}
 \label{app:a5}
 
-Figure~\ref{fig:cost} shows the per-protein wall-clock vs.\ protein
-length $L$ (panel a) and the amortized cost vs.\ test-set size $N$
-(panel b). Per-protein CJ wall scales with $L$ while fusion stays
-roughly $L$-independent (its single forward dominates only at very
-large $L$). Table~\ref{tab:a5} reports the per-test wall-clock seconds,
-identification cost (10 selection-set forwards, matching the
-10-protein selection budget used throughout), and amortized totals
-at $N{=}1000$ test proteins; the per-protein wall-clock numbers are
-medians measured across a representative Zhang timing sample (length
-range matched to eval-200) or 14--16 CASP14-FM evaluation runs, and are
-$L$-driven rather than dataset-specific.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\linewidth]{F2_cost_economy}
-  \caption{\textbf{Compute economy.} (a)~Per-protein wall-clock vs.\
-  protein length $L$ on ESM-2-{35M, 150M, 3B}: CJ markers scatter
-  along the $O(L)$ trend, fusion (dotted horizontal) stays
-  approximately constant at the per-forward cost of each backbone.
-  (b)~Amortized total cost vs.\ test-set size $N$ on ESM-2-\{650M, 3B\}
-  $\times$ \{Zhang, CASP14-FM\} (CJ solid, fusion dashed): CJ scales
-  linearly with $N$; fusion's curve is dominated by the one-time
-  10-protein identification step at small $N$ and barely moves
-  thereafter. Break-even sits below $N{=}20$ on every cell measured.
-  The curves are linear \emph{extrapolations} from the measured
-  per-protein costs of Table~\ref{tab:a5} (we did not run $N$ to the
-  thousands), so the large-$N$ dollar figures --- e.g.\ the
-  ESM-2-3B/CASP14-FM CJ line passing \$1{,}600 by $N\approx10$k --- are
-  projected, not incurred.}
-  \label{fig:cost}
-\end{figure}
+Table~\ref{tab:a5} reports the per-protein \emph{paired} wall-clock and peak
+GPU memory behind the compute-economy figure (Figure~\ref{fig:cost},
+Section~\ref{sec:cost}): CJ and fusion timed on the \emph{same} proteins on
+identical A100-80GB hardware (bf16), as medians over the evaluation draw. Per
+protein, CJ scales with $L$ through its $\sim 19L$ forward passes while fusion
+runs a single forward (still $O(L^2)$, but $2$--$3$ orders of magnitude below
+CJ), for median speedups $\sim 150$--$1600\times$ on Zhang eval-200. The
+one-time 10-protein head probe is $\sim$10 eager attention forwards (reported
+as a forward count rather than wall-clock: it scores all heads and was not
+separately timed).
 
 \begin{table}[h]
 \centering
 \small
-\caption{Per-test wall and amortized cost at $N=1000$. CJ s/prot is the
-measured mean wall-clock across the timing proteins (Zhang: representative
-length-matched sample; CASP14-FM: $14$--$16$ runs). Fusion s/test is the
-measured median single-forward wall-clock for the test protein, fixed across
-datasets at each model scale because fusion is one forward per protein.
-Identification seconds is $10 \times$ the per-protein forward time (the
-10-protein selection budget). Dollar totals at $N=1000$ are extrapolated
-linearly from these measured per-protein costs (CJ scales linearly in $N$,
-fusion scales as identification + $N \times$ per-test); the extrapolation
-assumes no further batching gains at large $N$.}
+\caption{\textbf{Per-protein \emph{paired} wall-clock and peak memory
+(A100-80GB, bf16, matched batching).} CJ and fusion are timed on the
+\emph{same} proteins on identical hardware; all wall-clock values are
+medians over the evaluation draw. ``Speedup'' is the median per-protein
+CJ/fusion wall-clock ratio. ``Peak mem'' is the maximum GPU memory (GiB)
+over the draw (CJ\,/\,fusion). Fusion's single forward grows mildly with
+$L$ (Figure~\ref{fig:cost}a) but stays $2$--$3$ orders of magnitude below
+CJ's $\sim 19L$ forwards. The CASP14-FM row is over the $N{=}14$ targets
+both methods can run; ESM-2's 1024-token context excludes the two longest
+CASP14 targets ($L{=}1372, 2180$) from both methods, so we make no
+$L>1024$ timing claim. Fusion's one-time 10-protein head probe is 10 eager
+forwards (a forward count; not separately timed).}
 \label{tab:a5}
-\begin{tabular}{llrrrrr}
+\begin{tabular}{llrrrr}
 \toprule
-Variant & Dataset & CJ s/prot & Fus s/test & Ident s & CJ \$ (N=1k) & Fus \$ (N=1k) \\
+Variant & Dataset & CJ s/prot & Fusion s/prot & Speedup & Peak mem (CJ\,/\,fus) \\
 \midrule
-ESM-2-650M & Zhang     & 32.8  & 8.0  & 80  & 12.77  & 3.15 \\
-ESM-2-650M & CASP14-FM & 100.0 & 8.0  & 80  & 38.89  & 3.15 \\
-ESM-2-3B   & Zhang     & 100.9 & 18.0 & 180 & 39.25  & 7.07 \\
-ESM-2-3B   & CASP14-FM & 405.4 & 18.0 & 180 & 157.62 & 7.07 \\
+ESM-2-35M  & Zhang eval-200 & 4.7  & 0.032 & $150\times$  & 2.4 / 0.5 \\
+ESM-2-150M & Zhang eval-200 & 12.5 & 0.046 & $280\times$  & 3.7 / 1.8 \\
+ESM-2-650M & Zhang eval-200 & 30.1 & 0.050 & $604\times$  & 15.4 / 4.2 \\
+ESM-2-3B   & Zhang eval-200 & 87.3 & 0.054 & $1626\times$ & 44.9 / 19.5 \\
+ESM-2-3B   & CASP14-FM      & 20.1 & 0.044 & $466\times$  & 46.8 / 30.6 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1708,5 +1965,66 @@ prominent that a handful of labeled proteins identifies it. This sweep
 is what licenses the 10-protein selection set used for the in-distribution
 Zhang eval-200 results; the 50-protein budget elsewhere (the matched-budget
 $L_1$-LR control) is conservative by comparison.
+
+\section{Scaling beyond the context window via stitching}
+\label{app:stitch}
+
+The single-forward design caps fusion at the backbone's context length
+(ESM-2: $1{,}024$ tokens). Longer chains can still be read by tiling the
+sequence into overlapping windows ($W\leq1024$, $50\%$ overlap), running
+fusion in each, and stitching the per-window maps (overlap-averaged). With
+the $50\%$ stride, pairs with $|i-j|\leq W/2$ always share a window, pairs
+between $W/2$ and $W$ are alignment-dependent, and only pairs with
+$|i-j|>W$ are unreachable.
+Two findings (Figure~\ref{fig:stitch}).
+\emph{(i)~Tiling is nearly lossless at a moderate window.} On Zhang
+eval-200, where the full forward is feasible as a baseline, stitching costs
+$0.8$pp of top-$L/2$ long precision at $W{=}256$ (two windows) and only
+$0.1$pp at $W{=}384$; the penalty grows for smaller windows ($5.7$pp at
+$W{=}128$, ${\sim}4.6$ windows) and tracks the fraction of true contacts
+with $|i-j|>W$ ($3.1\%$ at $W{=}256$, $18.9\%$ at $W{=}128$). Long-range
+contacts cluster within moderate sequence separation, so a moderate window
+captures almost all of them and stitching artifacts are second-order.
+\emph{(ii)~Long proteins are reachable two ways.} On the two CASP14-FM
+targets that exceed ESM-2's context (EXT-CAS9, $L{=}1372$; T1044,
+$L{=}2180$) --- which no ESM-2 forward can process --- \emph{stitched} ESM-2
+fusion recovers contacts at top-$L/2$ long precision $0.29$ and $0.11$ (2
+and 4 windows). Alternatively, a \emph{backbone whose positional encoding extends past a
+fixed window needs no stitching}: ProtT5-XL (T5 relative-position attention,
+no absolute-position table) reads both targets in a \emph{single} forward
+($0.9$--$1.3$\,s, $<15$\,GB) at comparable precision ($0.27$ and $0.07$;
+Figure~\ref{fig:stitch}b), and ESMC's $2{,}048$-token rotary context
+likewise exceeds ESM-2's $1{,}024$. These backbones are not unbounded ---
+ProtT5 was pretrained around $512$ residues and ESMC at $2{,}048$, full
+self-attention cost still grows with $L$, and the longest inputs run beyond
+the training distribution --- but their positional encodings accept these
+targets directly where a fixed absolute-position model (ESM-1b) cannot. So a protein
+beyond a backbone's context can be handled either by stitching a strong
+short-context model or by running a long-context one natively; on these
+targets the two are comparable, with ESM-2's stronger contact signal
+slightly ahead even through the stitch. Either way the cost is $\sim$1\,s
+of forwards, where a tiled Categorical Jacobian would cost $\sim 19W$ per
+window (tens of thousands of forwards total): the compute gap fusion opens
+at single-protein scale only widens for long chains. These two targets are
+a proof of concept; a quantitative $L{>}1024$ benchmark (a dedicated eval
+set) is the natural next step.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{F_stitch}
+  \caption{\textbf{Stitched fusion scales past the context window.}
+  (a)~Chunking-penalty ablation on Zhang eval-200 (full forward feasible as
+  baseline, blue dashed): stitched top-$L/2$ long precision (orange)
+  approaches the full forward as the window $W$ grows, and the residual loss
+  tracks the fraction of true contacts with $|i-j|>W$ (grey, right axis) ---
+  the inherent reach limit of a fixed window, not a stitching artifact.
+  (b)~The two CASP14-FM targets longer than ESM-2's $1{,}024$ context
+  (EXT-CAS9 $L{=}1372$, T1044 $L{=}2180$): no ESM-2 forward can process them,
+  yet \emph{stitched} ESM-2 fusion (2/4 windows, purple) and \emph{native}
+  ProtT5-XL fusion (one forward, green; ProtT5's relative-position attention
+  has no fixed absolute-position cap) recover comparable contacts --- two routes past the
+  context window, both $\sim$1\,s where CJ would need $\sim 19L$ forwards.}
+  \label{fig:stitch}
+\end{figure}
 
 \end{document}

@@ -170,17 +170,16 @@ def figure_2_cost_economy() -> None:
     Rebuilt per r3 feedback: no log-log, clean legend (one row per arch),
     L on x-axis added.
     """
-    # ── Panel (a): wall vs L, per architecture, two methods ───────────────
+    # ── Panel (a): paired CJ-vs-fusion wall vs L (real per-protein timings) ──
+    # CJ: cached per-protein wall_clock (cl7_phase15_cj_*). Fusion: measured
+    # per-protein wall_clock from the r4 paired-timing run (same proteins, same
+    # A100-80GB). Falls back to the prior dotted-horizontal estimate only if the
+    # r4 fusion-timing JSON is absent.
     arch_files = [
-        ("ESM-2-35M", "cl7_phase15_cj_35m_zhang_random_50.json", 0.5),
-        ("ESM-2-150M", "cl7_phase15_cj_150m_zhang_random_50.json", 2.0),
-        ("ESM-2-3B", "cl7_phase15_cj_3b_zhang_random_50.json", 18.0),
+        ("ESM-2-150M", "150m", "150M", "#9ecae1", 2.0),
+        ("ESM-2-650M", "650m", "650M", "#4292c6", 8.0),
+        ("ESM-2-3B", "3b", "3B", "#08519c", 18.0),
     ]
-    arch_palette = {
-        "ESM-2-35M": "#9ecae1",
-        "ESM-2-150M": "#4292c6",
-        "ESM-2-3B": "#08519c",
-    }
 
     fig, axes = plt.subplots(
         1, 2, figsize=(8.4, 3.4), gridspec_kw={"width_ratios": [1, 1.05]}, constrained_layout=True
@@ -188,54 +187,54 @@ def figure_2_cost_economy() -> None:
     ax_left, ax_right = axes
 
     cj_handles = []
-    for arch, fname, fusion_s in arch_files:
-        d = json.load((RESULTS / fname).open())
+    ymax = 1.0
+    for arch, cjtag, fustag, c, fusion_s_fallback in arch_files:
+        d = json.load((RESULTS / f"cl7_phase15_cj_{cjtag}_zhang_eval200.json").open())
         rows = [r for r in d["per_protein"] if not r.get("skipped")]
         Ls = np.array([r["sequence_length"] for r in rows])
         walls = np.array([r["wall_clock_seconds"] for r in rows])
         order = np.argsort(Ls)
-        c = arch_palette[arch]
+        ymax = max(ymax, float(walls.max()))
         h = ax_left.scatter(
-            Ls[order],
-            walls[order],
-            s=14,
-            color=c,
-            alpha=0.85,
-            edgecolors="white",
-            linewidths=0.4,
-            label=f"{arch} CJ",
+            Ls[order], walls[order], s=14, color=c, alpha=0.85,
+            edgecolors="white", linewidths=0.4, label=f"{arch} CJ",
         )
         cj_handles.append(h)
-        # fusion = one forward, L-independent: a dotted horizontal at the
-        # per-forward cost of this backbone (same color as its CJ scatter).
-        ax_left.axhline(
-            fusion_s,
-            color=c,
-            linestyle=":",
-            linewidth=1.4,
-            alpha=0.85,
-        )
+        # fusion: real per-protein scatter (open markers), same color.
+        fp = RESULTS / f"r4_fusion_timing_{fustag}_zhang_eval200.json"
+        if fp.exists():
+            fd = json.load(fp.open())
+            fr = [r for r in fd["per_protein"] if not r.get("skipped")]
+            fL = np.array([r["sequence_length"] for r in fr])
+            fw = np.array([r["fusion_wall_clock_seconds"] for r in fr])
+            fo = np.argsort(fL)
+            ax_left.scatter(
+                fL[fo], fw[fo], s=15, facecolors="none", edgecolors=c,
+                linewidths=0.9, marker="o", alpha=0.9,
+            )
+        else:
+            ax_left.axhline(fusion_s_fallback, color=c, linestyle=":", linewidth=1.4, alpha=0.85)
 
     ax_left.set_xlabel(r"Protein length $L$ (residues)")
     ax_left.set_ylabel("Wall-clock per protein (s)")
-    ax_left.set_xlim(0, 600)
-    ax_left.set_ylim(0, 300)
-    ax_left.set_title("(a) Per-protein wall-clock vs $L$", fontsize=10, pad=4)
-    # Explain the dotted lines in the legend rather than with text on the data
-    # (markers = CJ per arch; one proxy entry = the dotted fusion baselines).
+    ax_left.set_xlim(150, 620)
+    # Log y: CJ (~10-300s) and fusion (~0.02-0.1s) span ~3 orders of magnitude;
+    # a linear axis squashes fusion to zero and hides its own O(L^2) growth.
+    ax_left.set_yscale("log")
+    ax_left.set_ylim(0.02, ymax * 2.0)
+    ax_left.set_title("(a) Per-protein wall-clock vs $L$ (log scale)", fontsize=10, pad=4)
+    # Legend: filled markers = CJ per arch; one proxy = the open-marker fusion.
     from matplotlib.lines import Line2D
 
     fusion_proxy = Line2D(
-        [0],
-        [0],
-        color="#555555",
-        linestyle=":",
-        linewidth=1.4,
-        label="fusion (1 forward, per backbone)",
+        [0], [0], color="#555555", linestyle="none", marker="o",
+        markerfacecolor="none", markeredgecolor="#555555", markersize=5,
+        label="fusion (1 forward, measured)",
     )
     ax_left.legend(
         handles=[*cj_handles, fusion_proxy],
-        loc="upper left",
+        loc="center left",
+        bbox_to_anchor=(0.0, 0.42),
         fontsize=7.5,
         frameon=False,
         handletextpad=0.4,
@@ -245,61 +244,56 @@ def figure_2_cost_economy() -> None:
     ax_left.grid(axis="y", linewidth=0.3, alpha=0.35)
     ax_left.set_axisbelow(True)
 
-    # ── Panel (b): amortized cost vs N, log-x linear-y ─────────────────────
-    p = RESULTS / "cl7_phase15_cost_accounting.json"
-    d = json.load(p.open())
-    rows = d["rows"]
-    Ns = np.array([100, 1000, 10000])
-
-    cell_palette = {
-        ("650M", "zhang_random_50"): ("#9ecae1", "ESM-2-650M / Zhang-50"),
-        ("650M", "casp14_fm"): ("#4292c6", "ESM-2-650M / CASP14-FM"),
-        ("3B", "zhang_random_50"): ("#08519c", "ESM-2-3B / Zhang-50"),
-        ("3B", "casp14_fm"): ("#08306b", "ESM-2-3B / CASP14-FM"),
-    }
-    cj_lines, fus_lines = [], []
-    for r in rows:
-        key = (r["variant"], r["dataset"])
-        if key not in cell_palette:
-            continue
-        c, label = cell_palette[key]
-        fuse = np.array([r[f"fusion_total_USD_at_N{n}"] for n in Ns])
-        cj = np.array([r[f"cj_total_USD_at_N{n}"] for n in Ns])
-        (l1,) = ax_right.plot(
-            Ns, cj, "-s", color=c, label=f"{label} CJ", linewidth=1.3, markersize=4.5
-        )
-        (l2,) = ax_right.plot(
-            Ns,
-            fuse,
-            "--o",
-            color=c,
-            alpha=0.65,
-            label=f"{label} fusion",
-            linewidth=1.3,
-            markersize=4.5,
-        )
-        cj_lines.append(l1)
-        fus_lines.append(l2)
-    ax_right.set_xlabel(r"$N$ test proteins")
-    ax_right.set_ylabel("Amortized cost (USD)")
+    # ── Panel (b): MEASURED speedup vs model size (Zhang eval-200) ─────────
+    # Per-protein median wall-clock speedup (CJ / fusion) with min-max whiskers,
+    # from the r4 paired-timing run (same proteins, same A100-80GB). Fully
+    # measured -- replaces the prior linear cost-amortization extrapolation.
+    td = json.load((RESULTS / "r4_timing_paired.json").open())
+    by_variant = {r["variant"]: r for r in td["rows"] if r["dataset"] == "zhang_eval200"}
+    spd_arch = [
+        ("35M", 35e6),
+        ("150M", 150e6),
+        ("650M", 650e6),
+        ("3B", 3.0e9),
+    ]
+    xs, meds, los, his = [], [], [], []
+    for var, params in spd_arch:
+        r = by_variant[var]
+        xs.append(params)
+        meds.append(r["speedup_med"])
+        los.append(r["speedup_med"] - r["speedup_min"])
+        his.append(r["speedup_max"] - r["speedup_med"])
+    xs = np.array(xs)
+    meds = np.array(meds)
+    ax_right.errorbar(
+        xs, meds, yerr=[los, his], fmt="o-", color="#08519c",
+        ecolor="#9ecae1", elinewidth=1.5, capsize=3, markersize=6,
+        linewidth=1.6, label="median speedup (whiskers: per-protein min–max)",
+    )
+    # Annotate the endpoints so the 150x -> 1600x growth reads at a glance.
+    ax_right.annotate(f"{meds[0]:.0f}$\\times$", xy=(xs[0], meds[0]), xytext=(6, -12),
+                      textcoords="offset points", ha="left", fontsize=8.5, color="#08519c")
+    ax_right.annotate(f"{meds[-1]:.0f}$\\times$", xy=(xs[-1], meds[-1]), xytext=(-2, 9),
+                      textcoords="offset points", ha="right", fontsize=8.5, color="#08519c")
     ax_right.set_xscale("log")
-    ax_right.set_xticks([100, 1000, 10000])
-    ax_right.set_xticklabels(["100", "1000", "10000"])
-    ax_right.set_ylim(0, 1700)
-    ax_right.set_title("(b) Cost amortization vs $N$", fontsize=10, pad=4)
+    ax_right.set_yscale("log")
+    ax_right.set_xlabel("Model size (parameters)")
+    ax_right.set_ylabel(r"Median speedup (CJ / fusion, $\times$)")
+    ax_right.set_xticks([p for _, p in spd_arch])
+    ax_right.set_xticklabels([v for v, _ in spd_arch])
+    ax_right.xaxis.set_minor_formatter(plt.NullFormatter())
+    ax_right.tick_params(axis="x", which="minor", length=0)
+    ax_right.set_yticks([100, 300, 1000, 3000])
+    ax_right.set_yticklabels(["100", "300", "1000", "3000"])
+    ax_right.yaxis.set_minor_formatter(plt.NullFormatter())
+    ax_right.set_xlim(2.5e7, 4.0e9)
+    ax_right.set_ylim(50, 4000)
+    ax_right.set_title("(b) Measured speedup vs model size", fontsize=10, pad=4)
     for spine in ("top", "right"):
         ax_right.spines[spine].set_visible(False)
     ax_right.grid(axis="y", linewidth=0.3, alpha=0.35)
     ax_right.set_axisbelow(True)
-    ax_right.legend(
-        cj_lines + fus_lines,
-        [line.get_label() for line in cj_lines + fus_lines],
-        loc="upper left",
-        fontsize=6.5,
-        frameon=False,
-        handletextpad=0.4,
-        ncol=1,
-    )
+    ax_right.legend(loc="upper left", fontsize=7, frameon=False, handletextpad=0.4)
 
     _save(fig, "F2_cost_economy")
 
@@ -318,12 +312,12 @@ def figure_3_ksweep() -> None:
 
     # Concentrated-cluster arches in warm earth-tones; diffuse-cluster in cool blues.
     palette = {
-        ("esm2", "8M"): "#bcbddc", # light purple (concentrated, small)
-        ("esm2", "35M"): "#807dba", # purple (concentrated, larger)
-        ("amplify", "350M"): "#c66e3f", # rust (concentrated)
-        ("progen2", "xlarge"): "#9c9c9c", # neutral grey (causal LM scope boundary)
-        ("esm1b", "1b"): "#41b6c4", # teal (diffuse)
-        ("prott5", "XL"): "#225ea8", # deep blue (diffuse)
+        ("esm2", "8M"): "#bcbddc",  # light purple (concentrated, small)
+        ("esm2", "35M"): "#807dba",  # purple (concentrated, larger)
+        ("amplify", "350M"): "#c66e3f",  # rust (concentrated)
+        ("progen2", "xlarge"): "#9c9c9c",  # neutral grey (causal LM scope boundary)
+        ("esm1b", "1b"): "#41b6c4",  # teal (diffuse)
+        ("prott5", "XL"): "#225ea8",  # deep blue (diffuse)
     }
 
     fig, ax = plt.subplots(figsize=(6.5, 3.8))
@@ -354,7 +348,7 @@ def figure_3_ksweep() -> None:
         label_str = _pretty_label(family, variant).replace("ESM-1b-1b", "ESM-1b")
         label_str = label_str.replace("ProGen2-xlarge", "ProGen2")
         if sweet_K is not None:
-            label_str += rf" ($K^\star{{=}}{sweet_K}$)"
+            label_str += rf"  ($K^\star{{=}}{sweet_K}$)"
         ax.plot(
             Ks, ys_arr, "-o", color=c, label=label_str, linewidth=1.5, markersize=4.5, alpha=0.95
         )
@@ -540,7 +534,7 @@ def figure_6_repr_cj_validation() -> None:
         edgecolors="white",
         linewidths=0.5,
         zorder=2,
-        label=f"ESM-2-650M Zhang eval-200 ($N{{=}}${len(common)})",
+        label=f"ESM-2-650M Zhang eval-200  ($N{{=}}${len(common)})",
     )
     r = float(np.corrcoef(cj_v, repr_v)[0, 1])
     ax.set_xlabel(r"logit-CJ top-$L/2$ long precision")
@@ -569,17 +563,17 @@ def figure_6_repr_cj_validation() -> None:
 def main() -> None:
     print(f"Writing figures to {FIGURES}/")
     figure_1_headline()
-    print(" F1 headline")
+    print("  F1 headline")
     figure_2_cost_economy()
-    print(" F2 cost economy")
+    print("  F2 cost economy")
     figure_3_ksweep()
-    print(" F3 K-sweep")
+    print("  F3 K-sweep")
     figure_4_cluster_geometry()
-    print(" F4 cluster geometry")
+    print("  F4 cluster geometry")
     figure_5_progen2_negative()
-    print(" F5 ProGen2 negative")
+    print("  F5 ProGen2 negative")
     figure_6_repr_cj_validation()
-    print(" F6 repr-CJ validation")
+    print("  F6 repr-CJ validation")
     print(
         f"\nDone. {len(list(FIGURES.glob('*.pdf')))} PDFs + {len(list(FIGURES.glob('*.png')))} PNGs in {FIGURES}"
     )
